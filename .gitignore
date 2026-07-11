@@ -3,22 +3,3 @@
 .env.*
 !.env.example
 
-# ── Node ─────────────────────────────────────────────────────
-node_modules/
-npm-debug.log*
-
-# ── Uploads utilisateurs ──────────────────────────────────────
-backend/uploads/
-frontend/uploads/
-
-# ── Sauvegardes BD (locales uniquement) ──────────────────────
-backups/
-*.sql.gz
-*.dump
-
-# ── OS / Editeurs ────────────────────────────────────────────
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-*.swp
