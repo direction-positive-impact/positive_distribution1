@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Positive Distribution</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg1:#0f1117;--bg2:#1a1d27;--bg3:#222638;--txt1:#e8eaf0;--txt2:#9da3b4;--txt3:#6b7280;--acc:#4f8ef7;--acc2:#3b73e0;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--border:#2e3347;--card:#1e2235;--radius:10px;--shadow:0 2px 12px rgba(0,0,0,0.4)}
+.light{--bg1:#f0f2f8;--bg2:#ffffff;--bg3:#f7f8fc;--txt1:#1a1d2e;--txt2:#4b5563;--txt3:#9ca3af;--acc:#3b73e0;--acc2:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--border:#dde1ef;--card:#ffffff;--shadow:0 2px 12px rgba(0,0,0,0.08)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg1);color:var(--txt1);height:100vh;display:flex;overflow:hidden;font-size:14px}
+#sidebar{width:224px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;z-index:100;transition:transform .3s}
+.logo{padding:18px 16px;border-bottom:1px solid var(--border);font-size:15px;font-weight:700}
+.logo span{color:var(--acc)}
+nav{flex:1;overflow-y:auto;padding:8px 0}
+.nav-section{padding:16px 14px 4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;color:var(--txt2);border-left:3px solid transparent;transition:all .15s;font-size:13px}
+.nav-item:hover{background:var(--bg3);color:var(--txt1)}.nav-item.active{background:var(--bg3);color:var(--acc);border-left-color:var(--acc)}
+.nav-item .badge{margin-left:auto;background:var(--red);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px}
+.sidebar-bottom{padding:12px;border-top:1px solid var(--border)}
+.user-info{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius);background:var(--bg3);margin-bottom:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--acc);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;flex-shrink:0}
+.user-name{font-size:13px;font-weight:600}.user-role{font-size:11px;color:var(--txt3)}
+.sb-actions{display:flex;gap:6px}
+.btn-sm2{flex:1;padding:7px 6px;border:1px solid var(--border);background:transparent;color:var(--txt2);border-radius:var(--radius);cursor:pointer;font-size:12px;text-align:center;transition:all .15s}
+.btn-sm2:hover{background:var(--bg3);color:var(--txt1)}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#topbar{padding:14px 20px;border-bottom:1px solid var(--border);background:var(--bg2);display:flex;align-items:center;gap:12px;min-height:56px}
+#hamburger{display:none;background:none;border:none;color:var(--txt1);font-size:22px;cursor:pointer;padding:4px 8px}
+#page-title{font-size:16px;font-weight:700;flex:1}
+.topbar-date{font-size:12px;color:var(--txt3)}
+#content{flex:1;overflow-y:auto;padding:20px;background:var(--bg1)}
+.page{display:none}.page.active{display:block}
+.btn{padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border);background:transparent;color:var(--txt1);cursor:pointer;font-size:13px;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--bg3)}.btn-primary{background:var(--acc);border-color:var(--acc);color:#fff}.btn-primary:hover{background:var(--acc2)}.btn-success{background:var(--green);border-color:var(--green);color:#fff}.btn-danger{background:transparent;border-color:var(--red);color:var(--red)}.btn-danger:hover{background:var(--red);color:#fff}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:20px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.kpi-label{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.kpi-value{font-size:20px;font-weight:700;color:var(--txt1)}.kpi-sub{font-size:11px;color:var(--txt3);margin-top:3px}
+.kpi-green .kpi-value{color:var(--green)}.kpi-red .kpi-value{color:var(--red)}.kpi-blue .kpi-value{color:var(--acc)}.kpi-amber .kpi-value{color:var(--amber)}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:16px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--txt1)}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.page-subtitle{font-size:12px;color:var(--txt3);margin-top:2px}
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:9px 10px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--txt3);border-bottom:1px solid var(--border)}
+td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--txt2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3);color:var(--txt1)}
+.tfoot-row td{background:var(--bg3);font-weight:600;color:var(--txt1);border-top:1px solid var(--border)}
+.tbl-wrap{overflow-x:auto}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.badge-green{background:rgba(34,197,94,.15);color:var(--green)}.badge-red{background:rgba(239,68,68,.15);color:var(--red)}.badge-amber{background:rgba(245,158,11,.15);color:var(--amber)}.badge-blue{background:rgba(79,142,247,.15);color:var(--acc)}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);color:var(--txt1);border-radius:var(--radius);padding:8px 12px;font-size:13px;outline:none;transition:border .15s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}input::placeholder{color:var(--txt3)}input[readonly]{opacity:.7;cursor:default}
+input[type=file]{padding:6px;cursor:pointer}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}.form-group label{font-size:12px;color:var(--txt3);font-weight:500}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-title{font-size:16px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--txt3);font-size:22px;cursor:pointer;line-height:1;padding:4px}.modal-close:hover{color:var(--txt1)}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 20px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:500;font-size:13px;transform:translateY(80px);opacity:0;transition:all .3s;max-width:340px}
+.toast.show{transform:translateY(0);opacity:1}.toast.success{border-left:3px solid var(--green)}.toast.error{border-left:3px solid var(--red)}
+.loading{text-align:center;padding:40px;color:var(--txt3)}.empty{text-align:center;padding:32px;color:var(--txt3);font-size:13px}
+.sep{height:1px;background:var(--border);margin:8px 0}
+.text-right{text-align:right}.text-center{text-align:center}.text-green{color:var(--green)}.text-red{color:var(--red)}.text-amber{color:var(--amber)}.text-blue{color:var(--acc)}.fw600{font-weight:600}
+.flex{display:flex;align-items:center;gap:8px}.mt1{margin-top:8px}.mt2{margin-top:16px}
+/* Stock boxes */
+.stock-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px}
+.stock-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;box-shadow:var(--shadow)}
+.stock-num{font-size:34px;font-weight:800;color:var(--acc)}.stock-unit{font-size:11px;color:var(--txt3);margin-top:4px;text-transform:uppercase}
+/* Rapport */
+.rapport-preview{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:20px;font-family:'Courier New',monospace;font-size:13px;line-height:2;white-space:pre-wrap}
+/* Barres */
+.bars-wrap{height:110px;display:flex;align-items:flex-end;gap:6px;padding:8px 0 0}
+.bar{flex:1;background:var(--acc);border-radius:4px 4px 0 0;opacity:.8;min-width:0}.bar:hover{opacity:1}
+.bars-labels{display:flex;gap:6px;margin-top:4px}.bar-lbl{flex:1;font-size:9px;color:var(--txt3);text-align:center}
+/* Alerte info banque */
+.info-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;font-size:13px;margin-bottom:12px;line-height:1.7}
+/* Mobile */
+#mobile-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90}
+@media(max-width:768px){
+  #sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-224px)}
+  #sidebar.open{transform:translateX(0)}#hamburger{display:block}#mobile-overlay.show{display:block}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}.grid-2{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.stock-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<!-- LOGIN -->
+<div id="login-wrap" style="display:flex;align-items:center;justify-content:center;height:100vh;width:100%;background:var(--bg1);position:fixed;inset:0;z-index:999">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:40px;width:380px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+    <div style="font-size:26px;font-weight:800;margin-bottom:6px">🥚 <span style="color:var(--acc)">Positive</span> Distribution</div>
+    <div style="color:var(--txt3);font-size:13px;margin-bottom:30px">Connectez-vous pour accéder à l'application</div>
+    <div class="form-group" style="margin-bottom:14px"><label>Email</label><input type="email" id="li-email" placeholder="email@pimpact.net"></div>
+    <div class="form-group" style="margin-bottom:20px"><label>Mot de passe</label><input type="password" id="li-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div id="li-err" style="color:var(--red);font-size:12px;margin-bottom:12px;display:none;padding:8px;background:rgba(239,68,68,.1);border-radius:6px"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:11px" onclick="doLogin()">Se connecter</button>
+  </div>
+</div>
+
+<div id="mobile-overlay" onclick="closeSidebar()"></div>
+<div id="sidebar">
+  <div class="logo">🥚 <span>Positive</span> Dist.</div>
+  <nav>
+    <div class="nav-section">Principal</div>
+    <div class="nav-item active" data-page="dashboard">📊 Tableau de bord</div>
+    <div class="nav-item" data-page="ventes">🛒 Ventes</div>
+    <div class="nav-item" data-page="livraisons">📦 Livraison du jour</div>
+    <div class="nav-item" data-page="repartition">🗺️ Répartition du jour</div>
+    <div class="sep"></div>
+    <div class="nav-section">Gestion</div>
+    <div class="nav-item" data-page="clients">👥 Clients</div>
+    <div class="nav-item" data-page="recouvrements">💰 Recouvrements</div>
+    <div class="nav-item" data-page="avances">💚 Avances clients</div>
+    <div class="nav-item" data-page="depenses">💸 Dépenses</div>
+    <div class="nav-item" data-page="impayes">⚠️ Impayés <span class="badge" id="badge-imp">0</span></div>
+    <div class="nav-item" data-page="stock">📋 Stock</div>
+    <div class="nav-item" data-page="pertes">💔 Pertes &amp; Casse</div>
+    <div class="sep"></div>
+    <div class="nav-section">Finance</div>
+    <div class="nav-item admin-only" data-page="banque">🏦 Banque</div>
+    <div class="nav-item admin-only" data-page="fournisseurs">🚚 Fournisseurs</div>
+    <div class="nav-item admin-only" data-page="factures">🧾 Factures Fournisseur <span class="badge" id="badge-fact-imp">0</span></div>
+    <div class="nav-item" data-page="rapports">📑 Rapports &amp; PDF</div>
+    <div class="sep"></div>
+    <div class="nav-section">Paramètres</div>
+    <div class="nav-item admin-only" data-page="backup">💾 Sauvegarde BD</div>
+    <div class="nav-item admin-only" data-page="categories">🏷️ Catégories &amp; Prix</div>
+    <div class="nav-item" data-page="import">📥 Import / Export</div>
+    <div class="nav-item admin-only" data-page="users">👤 Utilisateurs</div>
+    <div class="nav-item admin-only" data-page="journal">📋 Journal activité</div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-info"><div class="avatar" id="sb-avatar">?</div><div><div class="user-name" id="sb-name">—</div><div class="user-role" id="sb-role">—</div></div></div>
+    <div class="sb-actions">
+      <button class="btn-sm2" onclick="toggleTheme()" id="theme-btn">🌙 Thème</button>
+      <button class="btn-sm2" onclick="doLogout()">🚪 Déconn.</button>
+    </div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="topbar"><button id="hamburger" onclick="toggleSidebar()">☰</button><div id="page-title">Tableau de bord</div><div class="topbar-date" id="topbar-date"></div></div>
+  <div id="content">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-green"><div class="kpi-label">Ventes</div><div class="kpi-value" id="kpi-ventes">—</div><div class="kpi-sub" id="kpi-ventes-nb">—</div></div>
+      <div class="kpi-card kpi-blue"><div class="kpi-label">Encaissement</div><div class="kpi-value" id="kpi-cash">—</div></div>
+      <div class="kpi-card kpi-red"><div class="kpi-label">Impayés</div><div class="kpi-value" id="kpi-impayes">—</div><div class="kpi-sub" id="kpi-imp-nb">—</div></div>
+      <div class="kpi-card kpi-amber">
+        <div class="kpi-label">Stock final</div>
+        <div class="kpi-value" id="kpi-stock">—</div>
+        <div class="kpi-sub" id="kpi-stock-sub">—</div>
+      </div>
+      <div class="kpi-card admin-only" id="kpi-banque-card">
+        <div class="kpi-label">Solde banque</div>
+        <div class="kpi-value text-blue" id="kpi-banque">—</div>
+      </div>
+      <div class="kpi-card admin-only">
+        <div class="kpi-label">Afrocaisse</div>
+        <div class="kpi-value text-green" id="kpi-afrocaisse">—</div>
+        <div class="kpi-sub" id="kpi-afrocaisse-sub">Caisse physique</div>
+      </div>
+      <div class="kpi-card admin-only">
+        <div class="kpi-label">Dépenses du mois</div>
+        <div class="kpi-value text-red" id="kpi-depenses-mois">—</div>
+        <div class="kpi-sub" id="kpi-depenses-sub">—</div>
+      </div>
+      <div class="kpi-card" id="kpi-avances-card">
+        <div class="kpi-label">Avances clients</div>
+        <div class="kpi-value text-green" id="kpi-avances">—</div>
+        <div class="kpi-sub" id="kpi-avances-sub">—</div>
+      </div>
+    </div>
+
+    <!-- Soldes fournisseurs détaillés -->
+    <div class="card admin-only" style="margin-bottom:16px" id="kpi-fournisseurs-detail-card">
+      <div class="card-title">Comptes fournisseurs</div>
+      <div id="kpi-fournisseurs-detail" style="display:flex;flex-wrap:wrap;gap:10px;padding:4px 0"></div>
+    </div>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">Ventes — 7 derniers jours</div><div class="bars-wrap" id="bars-chart"></div><div class="bars-labels" id="bars-labels"></div></div>
+      <div class="card"><div class="card-title">Top 5 impayés</div><div class="tbl-wrap"><table><thead><tr><th>Client</th><th class="text-right">Solde dû</th></tr></thead><tbody id="tbl-top-imp"></tbody></table></div></div>
+    </div>
+    <div class="card"><div class="card-title">Ventes du jour</div><div class="tbl-wrap"><table><thead><tr><th>Client</th><th>Qté</th><th>Total</th><th>Payé</th><th>Statut</th></tr></thead><tbody id="tbl-vj"></tbody></table></div></div>
+  </div>
+
+  <!-- VENTES -->
+  <div class="page" id="page-ventes">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Ventes</h2></div>
+      <div class="filter-bar">
+        <input type="date" id="fv-date" style="width:150px" onchange="loadVentes()">
+        <input type="text" placeholder="Rechercher client…" id="fv-client" style="width:180px" oninput="loadVentes()">
+        <select id="fv-statut" onchange="loadVentes()" style="width:140px"><option value="">Tous statuts</option><option value="solde">Soldé</option><option value="partiel">Partiel</option><option value="impaye">Impayé</option></select>
+        <button class="btn btn-primary" onclick="openVenteModal()">+ Nouvelle vente</button>
+        <button class="btn" style="background:#1d6f42;color:#fff;font-size:12px" onclick="exportExcelVentes()">⬇ Export Excel</button>
+      </div>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>N°</th><th>Client</th><th>Qté</th><th>PU</th><th>Total dû</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="tbl-ventes"></tbody>
+      <tfoot><tr class="tfoot-row"><td colspan="5" style="color:var(--txt3);font-size:12px">Total distribué</td><td id="tot-v-total" class="text-amber fw600"></td><td colspan="2"></td></tr></tfoot>
+    </table></div></div>
+  </div>
+
+  <!-- LIVRAISONS -->
+  <div class="page" id="page-livraisons">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Livraisons</h2></div>
+      <button class="btn btn-primary" onclick="openLivrModal()">+ Nouvelle livraison</button>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Cartons</th><th>Fournisseur</th><th>Notes</th><th>Fichier</th><th>Actions</th></tr></thead>
+      <tbody id="tbl-livr"></tbody>
+    </table></div></div>
+  </div>
+
+  <!-- RÉPARTITION DU JOUR — avec filtre date -->
+  <div class="page" id="page-repartition">
+    <div class="section-header">
+      <div>
+        <h2 style="font-size:15px;font-weight:700">Répartition du jour</h2>
+        <div class="page-subtitle" id="rep-date-lbl"></div>
+      </div>
+      <div class="filter-bar">
+        <input type="date" id="rep-date-filter" style="width:160px" onchange="loadRepartition()">
+        <button class="btn" onclick="document.getElementById('rep-date-filter').value=today();loadRepartition()">Aujourd'hui</button>
+        <button class="btn" style="background:#1d6f42;color:#fff;font-size:12px" onclick="exportExcelRepartition()">⬇ Export Excel</button>
+      </div>
+    </div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="kpi-card kpi-blue"><div class="kpi-label">Cartons distribués</div><div class="kpi-value" id="rep-qte">0</div></div>
+      <div class="kpi-card kpi-amber"><div class="kpi-label">Stock restant</div><div class="kpi-value" id="rep-stock">0</div></div>
+      <div class="kpi-card kpi-green"><div class="kpi-label">Total FCFA</div><div class="kpi-value" id="rep-total">0</div></div>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Client</th><th>Zone</th><th>Cartons</th><th>Plateaux équiv.</th><th>Total FCFA</th><th>Statut</th></tr></thead><tbody id="tbl-rep"></tbody></table></div></div>
+  </div>
+
+  <!-- CLIENTS -->
+  <div class="page" id="page-clients">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Clients</h2></div>
+      <div class="filter-bar">
+        <input type="text" placeholder="Rechercher…" id="fc-search" style="width:200px" oninput="loadClients()">
+        <select id="fc-cat" onchange="loadClients()" style="width:180px"><option value="">Toutes catégories</option><option value="revendeur_principal">Revendeur Principal</option><option value="autre_revendeur">Autre Revendeur</option><option value="patisserie_conso">Patisserie/Conso</option></select>
+        <button class="btn btn-primary" onclick="openClientModal()">+ Nouveau client</button>
+        <button class="btn" style="background:#1d6f42;color:#fff;font-size:12px" onclick="exportExcelClients()">⬇ Export Excel</button>
+      </div>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Nom</th><th>Zone</th><th>Catégorie</th><th>Téléphone</th><th>Solde dû</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="tbl-clients"></tbody></table></div></div>
+  </div>
+
+  <!-- RECOUVREMENTS -->
+  <div class="page" id="page-recouvrements">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Recouvrements</h2></div>
+      <div class="filter-bar">
+        <input type="date" id="fr-d1" style="width:150px">
+        <input type="date" id="fr-d2" style="width:150px">
+        <button class="btn" onclick="loadRecouvrements()">Filtrer</button>
+        <!-- Bouton versement global — admin seulement, affiché via JS -->
+        <button id="btn-versement-banque" class="btn btn-success" style="display:none" onclick="ouvrirVersementBanque()" title="Verser le total des recouvrements filtrés en banque">🏦 Verser en banque</button>
+        <button class="btn btn-primary" onclick="openRecouvrModal()">+ Paiement recu</button>
+        <button class="btn" style="background:#1d6f42;color:#fff;font-size:12px" onclick="exportExcelRecouvrements()">⬇ Export Excel</button>
+      </div>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Client</th><th>Montant reçu</th><th>Restant</th><th>Date suivi</th><th>Note</th><th></th><th>Actions</th></tr></thead>
+      <tbody id="tbl-recouvrements"></tbody>
+      <tfoot><tr class="tfoot-row"><td colspan="2" style="color:var(--txt3);font-size:12px">Total encaissé</td><td id="tot-rec" class="text-green fw600"></td><td colspan="5"></td></tr></tfoot>
+    </table></div></div>
+  </div>
+
+  <!-- IMPAYÉS -->
+  <div class="page" id="page-impayes">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Impayés</h2></div>
+      <div style="display:flex;gap:8px"><button class="btn" style="background:#1d6f42;color:#fff;font-size:12px" onclick="exportExcelImpayes()">⬇ Export Excel</button></div>
+      <div id="total-imp-lbl" style="font-size:18px;font-weight:700;color:var(--red)"></div>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Client</th><th>Catégorie</th><th>Zone</th><th>Téléphone</th><th>Solde dû</th><th>Dernière vente</th><th>Action</th></tr></thead><tbody id="tbl-impayes"></tbody></table></div></div>
+  </div>
+
+  <!-- STOCK — avec conversion complète -->
+  <div class="page" id="page-stock">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Stock</h2>
+        <div class="page-subtitle">CC (Cameroun) = 12 plateaux = 360 œufs | CT (Tchad) = 12 plateaux = 360 œufs</div>
+      </div>
+      <button class="btn btn-primary" onclick="openStockModal()">+ Ajustement</button><button class="btn" style="background:#1d6f42;color:#fff;font-size:12px;margin-left:8px" onclick="exportExcelStock()">⬇ Excel</button>
+    </div>
+
+    <!-- Stock total global -->
+    <div class="stock-grid">
+      <div class="stock-box"><div class="stock-num" id="st-cartons">—</div><div class="stock-unit">Cartons total</div></div>
+      <div class="stock-box"><div class="stock-num" id="st-plateaux">—</div><div class="stock-unit">Plateaux total</div></div>
+      <div class="stock-box"><div class="stock-num" id="st-oeufs">—</div><div class="stock-unit">Œufs total</div></div>
+    </div>
+    <div style="display:flex;gap:24px;margin-bottom:12px;font-size:13px;padding:0 4px">
+      <span style="color:var(--txt3)">Total : <strong id="st-total-plats" style="color:var(--acc)">—</strong></span>
+      <span style="color:var(--txt3)">Soit : <strong id="st-total-oeufs" style="color:var(--acc)">—</strong></span>
+    </div>
+
+    <!-- Stock CC / CT séparés -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="background:var(--bg2);border:2px solid #2563eb;border-radius:12px;padding:16px">
+        <div style="font-size:11px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">
+          Stock CC — Cameroun (12 plat./crt)
+        </div>
+        <div style="display:flex;gap:16px;align-items:flex-end">
+          <div><div style="font-size:28px;font-weight:700;color:#2563eb" id="st-cc-cartons">—</div><div style="font-size:11px;color:var(--txt3)">cartons</div></div>
+          <div><div style="font-size:18px;font-weight:600;color:var(--txt2)" id="st-cc-plateaux">—</div><div style="font-size:11px;color:var(--txt3)">plateaux</div></div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--txt3)" id="st-cc-oeufs">—</div><div style="font-size:11px;color:var(--txt3)">œufs</div></div>
+        </div>
+      </div>
+      <div style="background:var(--bg2);border:2px solid #16a34a;border-radius:12px;padding:16px">
+        <div style="font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">
+          Stock CT — Tchad (12 plat./crt)
+        </div>
+        <div style="display:flex;gap:16px;align-items:flex-end">
+          <div><div style="font-size:28px;font-weight:700;color:#16a34a" id="st-ct-cartons">—</div><div style="font-size:11px;color:var(--txt3)">cartons</div></div>
+          <div><div style="font-size:18px;font-weight:600;color:var(--txt2)" id="st-ct-plateaux">—</div><div style="font-size:11px;color:var(--txt3)">plateaux</div></div>
+          <div><div style="font-size:14px;font-weight:600;color:var(--txt3)" id="st-ct-oeufs">—</div><div style="font-size:11px;color:var(--txt3)">œufs</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card"><div class="card-title">Journal des mouvements</div><div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Type</th><th>Total crt</th><th>CC</th><th>CT</th><th>Plateaux</th><th>Œufs</th><th>Motif</th><th></th></tr></thead>
+      <tbody id="tbl-stock-mvt"></tbody>
+    </table></div></div>
+  </div>
+
+  <!-- PERTES -->
+  <div class="page" id="page-pertes">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Pertes &amp; Casse</h2><div class="page-subtitle">Les pertes déduisent automatiquement le stock</div></div>
+      <button class="btn btn-primary" onclick="openPerteModal()">+ Saisir perte</button><button class="btn" style="background:#1d6f42;color:#fff;font-size:12px;margin-left:8px" onclick="exportExcelPertes()">⬇ Excel</button>
+    </div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">
+      <div class="kpi-card kpi-red"><div class="kpi-label">Pertes ce mois (œufs)</div><div class="kpi-value" id="per-mois">—</div></div>
+      <div class="kpi-card kpi-amber"><div class="kpi-label">Equiv. cartons</div><div class="kpi-value" id="per-cartons">—</div></div>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Œufs</th><th>Plateaux</th><th>Cartons</th><th>Cause</th><th>Actions</th></tr></thead><tbody id="tbl-pertes"></tbody></table></div></div>
+  </div>
+
+  <!-- BANQUE — avec récap versement + solde initial + catégories -->
+  <div class="page" id="page-banque">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Banque</h2><div class="page-subtitle">Versements, décaissements, frais bancaires</div></div>
+      <div class="flex">
+        <div style="text-align:right"><div style="font-size:11px;color:var(--txt3);text-transform:uppercase">Solde actuel</div><div style="font-size:20px;font-weight:700;color:var(--acc)" id="bq-solde">—</div></div>
+        <button class="btn" onclick="openSoldeInitialModal()">⚙️ Solde initial</button>
+        <button class="btn btn-primary" onclick="openBanqueModal()">+ Mouvement</button><button class="btn" style="background:#1d6f42;color:#fff;font-size:12px;margin-left:8px" onclick="exportExcelBanque()">⬇ Excel</button>
+      </div>
+    </div>
+    <div class="filter-bar" style="margin-bottom:12px">
+      <select id="bq-filter-cat" onchange="loadBanque()" style="width:200px">
+        <option value="">Toutes catégories</option>
+        <option value="recouvrement">Versement recouvrement</option>
+        <option value="paiement_fournisseur">Paiement fournisseur</option>
+        <option value="frais_bancaire">Frais bancaires</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Date</th><th>Description</th><th>Catégorie</th><th>Ref.</th><th>Encaissement</th><th>Décaissement</th><th>Solde</th><th></th></tr></thead><tbody id="tbl-banque"></tbody></table></div></div>
+  </div>
+
+  <!-- FOURNISSEURS -->
+  <div class="page" id="page-fournisseurs">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Fournisseurs</h2><div class="page-subtitle">Gestion des fournisseurs et prix d'achat</div></div>
+      <button class="btn btn-primary" onclick="openFournisseurModal()">+ Nouveau fournisseur</button>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Nom</th><th>Téléphone</th><th>Prix actuel</th><th>Solde compte</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="tbl-fournisseurs"></tbody>
+    </table></div></div>
+    <div class="card">
+      <div class="card-title">Historique des prix d'achat</div>
+      <div class="filter-bar" style="margin-bottom:12px">
+        <select id="pa-filter-fourn" onchange="loadPrixAchatHistorique()" style="width:220px"><option value="">Tous les fournisseurs</option></select>
+        <button class="btn btn-primary" onclick="openPrixAchatModal()">+ Nouveau prix d'achat</button>
+      </div>
+      <div class="tbl-wrap"><table><thead><tr><th>Date effet</th><th>Fournisseur</th><th>Prix/carton</th><th>Statut</th></tr></thead><tbody id="tbl-prix-achat"></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- FACTURES FOURNISSEUR -->
+  <div class="page" id="page-factures">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Factures Fournisseur</h2><div class="page-subtitle">Suivi des factures et paiements</div></div>
+      <div class="filter-bar">
+        <input type="date" id="ff-date" style="width:150px">
+        <select id="ff-fourn" style="width:180px"><option value="">Tous fournisseurs</option></select>
+        <select id="ff-statut" style="width:140px"><option value="">Tous statuts</option><option value="solde">Soldée</option><option value="partiel">Partiel</option><option value="impaye">Impayée</option></select>
+        <button class="btn" onclick="loadFactures()">Filtrer</button>
+        <button class="btn btn-primary" onclick="openFactureModal()">+ Nouvelle facture</button><button class="btn" style="background:#1d6f42;color:#fff;font-size:12px;margin-left:8px" onclick="exportExcelFactures()">⬇ Excel</button>
+      </div>
+    </div>
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kpi-card kpi-red"><div class="kpi-label">Total dû aux fournisseurs</div><div class="kpi-value" id="ff-total-du">—</div></div>
+      <div class="kpi-card kpi-blue"><div class="kpi-label">Factures du mois</div><div class="kpi-value" id="ff-total-mois">—</div></div>
+      <div class="kpi-card kpi-amber"><div class="kpi-label">Factures impayées</div><div class="kpi-value" id="ff-nb-impayees">—</div></div>
+      <div class="kpi-card kpi-green"><div class="kpi-label">Crédit d'avance global</div><div class="kpi-value" id="ff-credit-avance">—</div></div>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>N°</th><th>Fournisseur</th><th>Qté</th><th>PU</th><th>Total</th><th>Payé</th><th>Solde</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="tbl-factures"></tbody>
+      <tfoot><tr class="tfoot-row"><td colspan="5" style="color:var(--txt3);font-size:12px">Totaux filtrés</td><td id="tot-ff-total" class="fw600"></td><td id="tot-ff-paye" class="fw600 text-green"></td><td id="tot-ff-solde" class="fw600 text-red"></td><td colspan="2"></td></tr></tfoot>
+    </table></div></div>
+  </div>
+
+  <!-- RAPPORTS -->
+  <div class="page" id="page-rapports">
+    <div class="section-header"><div><h2 style="font-size:15px;font-weight:700">Rapports journaliers</h2></div></div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="flex" style="flex-wrap:wrap;gap:12px;align-items:flex-end">
+        <div class="form-group" style="flex:1;min-width:180px"><label>Date du rapport</label><input type="date" id="rpt-date"></div>
+        <div class="flex" style="gap:8px">
+          <button class="btn btn-primary" onclick="genRapport()">Générer</button>
+          <button class="btn" onclick="exportRapportPDF()">📄 PDF</button>
+          <button class="btn btn-success" onclick="exportRapportExcel()">📊 Excel</button>
+          <button class="btn" style="background:#25D366;color:#fff" onclick="exportRapportWhatsApp()">💬 WhatsApp</button>
+        </div>
+      </div>
+    </div>
+    <div id="rpt-result" style="display:none"><div class="rapport-preview" id="rpt-text"></div></div>
+  </div>
+
+  <!-- PRIX (admin) -->
+  <div class="page" id="page-prix">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Prix carton</h2></div>
+      <button class="btn btn-primary" onclick="openPrixModal()">+ Modifier prix</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-blue"><div class="kpi-label">Revendeurs Principaux</div><div class="kpi-value" id="px-rp">—</div></div>
+      <div class="kpi-card kpi-amber"><div class="kpi-label">Autres Revendeurs</div><div class="kpi-value" id="px-ar">—</div></div>
+      <div class="kpi-card kpi-green"><div class="kpi-label">Patisseries / Conso</div><div class="kpi-value" id="px-pc">—</div></div>
+    </div>
+    <div class="card"><div class="card-title">Historique</div><div class="tbl-wrap"><table><thead><tr><th>Date effet</th><th>Catégorie</th><th>Prix / carton</th><th>Statut</th></tr></thead><tbody id="tbl-prix"></tbody></table></div></div>
+  </div>
+
+  <!-- IMPORT/EXPORT -->
+  <div class="page" id="page-import">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Sauvegarde &amp; Restauration</h2>
+      <div class="page-subtitle">Exportez vos données en JSON — restaurez en cas de problème</div></div>
+    </div>
+
+    <!-- Stats BD -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">État de la base de données</div>
+      <div id="backup-stats" style="display:flex;flex-wrap:wrap;gap:10px;padding:4px 0">
+        <span style="color:var(--txt3);font-size:13px">Chargement...</span>
+      </div>
+      <button class="btn" style="margin-top:10px;font-size:12px" onclick="loadBackupStats()">🔄 Actualiser</button>
+    </div>
+
+    <div class="grid-2">
+      <!-- Export -->
+      <div class="card">
+        <div class="card-title">💾 Exporter la sauvegarde</div>
+        <p style="font-size:13px;color:var(--txt2);margin-bottom:16px;line-height:1.6">
+          Télécharge un fichier <strong>JSON</strong> contenant toutes vos données
+          (clients, ventes, recouvrements, stock, etc.).<br>
+          Conservez ce fichier en lieu sûr — il vous permettra de tout restaurer.
+        </p>
+        <div style="background:var(--bg3);border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--txt3)">
+          ✅ Ne contient <strong>jamais</strong> vos mots de passe ni vos identifiants de connexion BD.<br>
+          ✅ Peut être importé sur n'importe quelle instance de l'application.
+        </div>
+        <button class="btn btn-primary" onclick="exporterSauvegarde()" style="width:100%;padding:12px;font-size:14px">
+          ⬇️ Télécharger la sauvegarde
+        </button>
+        <div id="backup-export-status" style="margin-top:10px;font-size:12px;color:var(--txt3)"></div>
+      </div>
+
+      <!-- Restauration -->
+      <div class="card">
+        <div class="card-title">Restaurer une sauvegarde</div>
+        <p style="font-size:13px;color:var(--txt2);margin-bottom:12px;line-height:1.6">
+          La restauration s'effectue depuis la page <strong>Sauvegarde BD</strong> (menu lateral) en téléchargeant un fichier <code>.sql</code>.
+        </p>
+        <div style="background:var(--bg3);border-radius:8px;padding:14px;font-size:12px;color:var(--txt2);line-height:2">
+          <strong>Pour restaurer depuis un fichier .sql :</strong><br>
+          1. Télécharge une sauvegarde depuis le menu <strong>Sauvegarde BD</strong><br>
+          2. Ouvre un terminal dans le dossier du projet<br>
+          3. Exécute :<br>
+          <code style="background:var(--bg1);padding:4px 10px;border-radius:4px;display:inline-block;margin-top:4px">
+            mysql -u root -p positive_distribution &lt; backup_XXXX.sql
+          </code>
+        </div>
+        <div style="margin-top:12px">
+          <button class="btn btn-primary" onclick="nav('backup')">
+            Aller à Sauvegarde BD
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exports Excel (existant) -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">📊 Exports Excel</div>
+      <div id="export-list" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
+    <!-- Imports Excel (existant) -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">📥 Imports Excel</div>
+      <div id="import-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div id="import-log" class="mt2" style="font-size:12px;line-height:1.7"></div>
+    </div>
+  </div>
+
+  <!-- USERS (admin) -->
+  <div class="page" id="page-users">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Utilisateurs</h2></div>
+      <button class="btn btn-primary" onclick="openUserModal()">+ Nouvel utilisateur</button>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead><tbody id="tbl-users"></tbody></table></div></div>
+  </div>
+
+  <!-- JOURNAL ACTIVITÉ (admin) -->
+  <div class="page" id="page-journal">
+    <div class="section-header">
+      <div><h2 style="font-size:15px;font-weight:700">Journal d'activité</h2><div class="page-subtitle">Traçabilité complète — qui a fait quoi et quand</div></div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="filter-bar">
+        <select id="jf-module" style="width:160px"><option value="">Tous les modules</option><option value="ventes">Ventes</option><option value="livraisons">Livraisons</option><option value="recouvrements">Recouvrements</option><option value="stock">Stock</option><option value="pertes">Pertes</option><option value="banque">Banque</option><option value="clients">Clients</option><option value="auth">Connexions</option><option value="prix">Prix</option></select>
+        <input type="date" id="jf-d1" style="width:150px">
+        <input type="date" id="jf-d2" style="width:150px">
+        <button class="btn btn-primary" onclick="loadJournal()">Filtrer</button><button class="btn" style="background:#1d6f42;color:#fff;font-size:12px;margin-left:8px" onclick="exportExcelJournal()">⬇ Excel</button>
+      </div>
+    </div>
+    <div class="card"><div class="tbl-wrap"><table>
+      <thead><tr><th>Date &amp; heure</th><th>Utilisateur</th><th>Action</th><th>Module</th><th>Description</th></tr></thead>
+      <tbody id="tbl-journal"></tbody>
+    </table></div></div>
+  </div>
+
+  </div><!-- /content -->
+</div>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="m-vente"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Nouvelle vente / Distribution</div><button class="modal-close" onclick="closeModal('m-vente')">✕</button></div>
+  <div style="background:var(--bg3);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--txt3)">
+    💡 Enregistre la distribution. Si le client paie cash, enregistre ensuite un <strong>Recouvrement</strong>.
+  </div>
+  <div id="mv-avance-info" style="display:none;background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#065f46"></div>
+  <div class="form-grid">
+    <div class="form-group"><label>Date *</label><input type="date" id="mv-date"></div>
+    <div class="form-group"><label>Client *</label><select id="mv-client" onchange="fillVentePrix()"><option value="">Sélectionner…</option></select></div>
+    <div class="form-group">
+      <label>Type de carton *</label>
+      <select id="mv-type-carton" onchange="afficherStockDisponible()">
+        <option value="CC">CC — Cameroun (12 plateaux = 360 oeufs)</option>
+        <option value="CT">CT — Tchad (12 plateaux = 360 oeufs)</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Stock disponible</label><input id="mv-stock-dispo" readonly style="color:var(--amber);font-weight:600"></div>
+    <div class="form-group"><label>Quantité (cartons) *</label><input type="number" id="mv-qte" min="0.5" step="0.5" placeholder="Ex: 1, 1.5, 2..." oninput="calcVente()"></div>
+    <div class="form-group"><label>Prix unitaire (FCFA)</label><input type="number" id="mv-pu" oninput="calcVente()"></div>
+    <div class="form-group"><label>Total dû</label><input id="mv-total" readonly style="color:var(--amber);font-weight:700"></div>
+  </div>
+  <div class="form-group"><label>Observations</label><textarea id="mv-obs" rows="2"></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-vente')">Annuler</button><button class="btn btn-primary" onclick="saveVente()">✓ Enregistrer la distribution</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-livraison"><div class="modal">
+  <div class="modal-header"><div class="modal-title" id="ml-title">Nouvelle livraison</div><button class="modal-close" onclick="closeModal('m-livraison')">✕</button></div>
+  <input type="hidden" id="ml-id">
+  <div class="form-grid">
+    <div class="form-group"><label>Date *</label><input type="date" id="ml-date"></div>
+    <div class="form-group"><label>Cartons reçus *</label><input type="number" id="ml-qte" min="1"></div>
+    <div class="form-group"><label>Fournisseur *</label><select id="ml-fourn-id"><option value="">Sélectionner…</option></select></div>
+    <div class="form-group"><label>Notes</label><input type="text" id="ml-notes" placeholder="Observations éventuelles"></div>
+  </div>
+  <div class="form-group" style="margin-bottom:12px"><label>📎 Facture / Bon de livraison (image ou PDF)</label><input type="file" id="ml-file" accept="image/*,.pdf"><div id="ml-fichier-info" style="font-size:11px;color:var(--txt3);margin-top:4px"></div></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-livraison')">Annuler</button><button class="btn btn-primary" onclick="saveLivraison()">✓ Enregistrer</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-client"><div class="modal">
+  <div class="modal-header"><div class="modal-title" id="mc-title">Nouveau client</div><button class="modal-close" onclick="closeModal('m-client')">✕</button></div>
+  <input type="hidden" id="mc-id">
+  <div class="form-grid">
+    <div class="form-group"><label>Nom complet *</label><input type="text" id="mc-nom"></div>
+    <div class="form-group"><label>Téléphone</label><input type="text" id="mc-tel"></div>
+    <div class="form-group"><label>Zone / Localité</label><input type="text" id="mc-zone"></div>
+    <div class="form-group"><label>Catégorie *</label><select id="mc-cat-id"><option value="">Chargement...</option></select></div>
+    <div class="form-group"><label>Adresse</label><input type="text" id="mc-addr"></div>
+    <div class="form-group"><label>Statut</label><select id="mc-statut"><option value="actif">Actif</option><option value="inactif">Inactif</option></select></div>
+  </div>
+  <div class="form-group"><label>Observations</label><textarea id="mc-obs" rows="2"></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-client')">Annuler</button><button class="btn btn-primary" onclick="saveClient()">✓ Enregistrer</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-recouvr"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Saisir un paiement reçu</div><button class="modal-close" onclick="closeModal('m-recouvr')">✕</button></div>
+  <div class="form-grid">
+    <div class="form-group"><label>Client *</label><select id="mr-client" onchange="fillSoldeRec()"><option value="">Sélectionner…</option></select></div>
+    <div class="form-group"><label>Solde impayé actuel</label><input id="mr-solde-act" readonly style="color:var(--red);font-weight:700"></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="mr-date"></div>
+    <div class="form-group"><label>Montant reçu (FCFA) *</label><input type="number" id="mr-montant" min="1" oninput="calcRec()" placeholder="Ex: 50000"></div>
+    <div class="form-group"><label>Restant après</label><input id="mr-restant" readonly></div>
+    <div class="form-group"><label>Date suivi prévue</label><input type="date" id="mr-suivi"></div>
+  </div>
+  <div id="mr-avance-info" style="display:none;background:#d1fae5;border:1px solid #6ee7b7;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#065f46"></div>
+  <div class="form-group"><label>Observation</label><textarea id="mr-obs" rows="2"></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-recouvr')">Annuler</button><button class="btn btn-primary" onclick="saveRecouvr()">✓ Enregistrer</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-stock"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Ajustement de stock</div><button class="modal-close" onclick="closeModal('m-stock')">✕</button></div>
+  <div class="form-grid">
+    <div class="form-group"><label>Date *</label><input type="date" id="ms-date"></div>
+    <div class="form-group"><label>Type *</label><select id="ms-type"><option value="entree">Entrée</option><option value="sortie">Sortie</option><option value="ajustement">Ajustement exact</option><option value="perte">Perte</option></select></div>
+    <div class="form-group"><label>Cartons</label><input type="number" id="ms-c" min="0" value="0"></div>
+    <div class="form-group"><label>Plateaux</label><input type="number" id="ms-p" min="0" value="0"></div>
+    <div class="form-group"><label>Œufs</label><input type="number" id="ms-o" min="0" value="0"></div>
+  </div>
+  <div class="form-group"><label>Motif * (min. 3 caractères)</label><input type="text" id="ms-motif" placeholder="Ex : Correction inventaire du 16/06/2026"></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-stock')">Annuler</button><button class="btn btn-primary" onclick="saveStockAdj()">✓ Enregistrer</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-perte"><div class="modal">
+  <div class="modal-header"><div class="modal-title" id="mp-title">Saisir une perte / casse</div><button class="modal-close" onclick="closeModal('m-perte')">✕</button></div>
+  <input type="hidden" id="mp-id">
+  <div class="form-grid">
+    <div class="form-group"><label>Date *</label><input type="date" id="mp-date"></div>
+    <div class="form-group"><label>Type *</label><select id="mp-type"><option value="casse">Casse</option><option value="perte">Perte</option><option value="manquant">Manquant</option><option value="abime">Abîmé</option></select></div>
+    <div class="form-group"><label>Nombre d'œufs *</label><input type="number" id="mp-oeufs" min="1" oninput="calcPerte()" placeholder="Ex: 60"></div>
+    <div class="form-group"><label>Équivalent calculé</label><input id="mp-equiv" readonly></div>
+  </div>
+  <div class="form-group"><label>Cause * (obligatoire)</label><input type="text" id="mp-cause" placeholder="Ex : Chute pendant le transport"></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-perte')">Annuler</button><button class="btn btn-primary" onclick="savePerte()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- Banque — avec recap versement intégré -->
+<div class="modal-overlay" id="m-banque"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Mouvement bancaire</div><button class="modal-close" onclick="closeModal('m-banque')">✕</button></div>
+  <!-- Récapitulatif versement (affiché si ouvert depuis recouvrements) -->
+  <div id="mb-versement-info" class="info-box" style="display:none;color:var(--txt2);border-color:var(--green)"></div>
+  <div class="form-grid">
+    <div class="form-group"><label>Date *</label><input type="date" id="mb-date"></div>
+    <div class="form-group"><label>Description *</label><input type="text" id="mb-desc" placeholder="Ex: Versement recouvrements du 16/06"></div>
+    <div class="form-group"><label>Référence</label><input type="text" id="mb-ref"></div>
+    <div class="form-group"><label>Catégorie</label><select id="mb-categorie"><option value="recouvrement">Versement recouvrement</option><option value="paiement_fournisseur">Paiement fournisseur</option><option value="frais_bancaire">Frais bancaires</option><option value="autre">Autre</option></select></div>
+    <div class="form-group"><label>Type *</label><select id="mb-type"><option value="encaissement">Encaissement</option><option value="decaissement">Décaissement</option></select></div>
+    <div class="form-group"><label>Montant (FCFA) *</label><input type="number" id="mb-montant" min="0" placeholder="Ex: 1141000"></div>
+  </div>
+  <div class="form-group" style="margin-bottom:12px"><label>📎 Bordereau de versement (image ou PDF)</label><input type="file" id="mb-file" accept="image/*,.pdf"></div>
+  <div class="form-group"><label>Commentaire (détail des clients)</label><textarea id="mb-comment" rows="3" placeholder="Adam Issakha: 80 000 / Chaïbo: 145 000 / ..."></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-banque')">Annuler</button><button class="btn btn-primary" onclick="saveBanque()">✓ Enregistrer</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-prix"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Modifier un prix</div><button class="modal-close" onclick="closeModal('m-prix')">✕</button></div>
+  <div class="form-grid">
+    <div class="form-group"><label>Catégorie *</label><select id="mpx-cat"><option value="revendeur_principal">Revendeur Principal</option><option value="autre_revendeur">Autre Revendeur</option><option value="patisserie_conso">Patisserie/Conso</option></select></div>
+    <div class="form-group"><label>Nouveau prix (FCFA/carton) *</label><input type="number" id="mpx-prix" min="1"></div>
+    <div class="form-group"><label>Date d'effet *</label><input type="date" id="mpx-date"></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-prix')">Annuler</button><button class="btn btn-primary" onclick="savePrix()">✓ Enregistrer</button></div>
+</div></div>
+
+<div class="modal-overlay" id="m-user"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Nouvel utilisateur</div><button class="modal-close" onclick="closeModal('m-user')">✕</button></div>
+  <div class="form-grid">
+    <div class="form-group"><label>Nom *</label><input type="text" id="mu-nom"></div>
+    <div class="form-group"><label>Email *</label><input type="email" id="mu-email"></div>
+    <div class="form-group"><label>Rôle *</label><select id="mu-role"><option value="Admin">Admin</option><option value="Commercial">Commercial</option></select></div>
+    <div class="form-group"><label>Mot de passe *</label><input type="password" id="mu-pass"></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-user')">Annuler</button><button class="btn btn-primary" onclick="saveUser()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- Solde initial banque -->
+<div class="modal-overlay" id="m-solde-initial"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Solde bancaire initial</div><button class="modal-close" onclick="closeModal('m-solde-initial')">✕</button></div>
+  <div class="info-box" style="border-color:var(--amber);color:var(--txt2)">⚠️ Ce solde sert de point de départ. Tous les mouvements existants seront recalculés automatiquement à partir de cette valeur. Utilisez ceci une seule fois pour synchroniser avec votre relevé bancaire réel.</div>
+  <div class="form-grid">
+    <div class="form-group"><label>Montant actuel en banque (FCFA) *</label><input type="number" id="si-montant" placeholder="Ex: 2500000"></div>
+    <div class="form-group"><label>Date de ce solde *</label><input type="date" id="si-date"></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-solde-initial')">Annuler</button><button class="btn btn-primary" onclick="saveSoldeInitial()">✓ Enregistrer et synchroniser</button></div>
+</div></div>
+
+<!-- Fournisseur -->
+<div class="modal-overlay" id="m-fournisseur"><div class="modal">
+  <div class="modal-header"><div class="modal-title" id="mf-title">Nouveau fournisseur</div><button class="modal-close" onclick="closeModal('m-fournisseur')">✕</button></div>
+  <input type="hidden" id="mf-id">
+  <div class="form-grid">
+    <div class="form-group"><label>Nom *</label><input type="text" id="mf-nom"></div>
+    <div class="form-group"><label>Téléphone</label><input type="text" id="mf-tel"></div>
+    <div class="form-group"><label>Statut</label><select id="mf-statut"><option value="actif">Actif</option><option value="inactif">Inactif</option></select></div>
+  </div>
+  <div class="form-group" style="margin-bottom:12px"><label>Adresse</label><input type="text" id="mf-addr"></div>
+  <div class="form-group"><label>Observation</label><textarea id="mf-obs" rows="2"></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-fournisseur')">Annuler</button><button class="btn btn-primary" onclick="saveFournisseur()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- Prix d'achat -->
+<div class="modal-overlay" id="m-prix-achat"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Nouveau prix d'achat</div><button class="modal-close" onclick="closeModal('m-prix-achat')">✕</button></div>
+  <div class="form-grid">
+    <div class="form-group"><label>Fournisseur *</label><select id="mpa-fourn"><option value="">Sélectionner…</option></select></div>
+    <div class="form-group"><label>Prix d'achat (FCFA/carton) *</label><input type="number" id="mpa-prix" min="1"></div>
+    <div class="form-group"><label>Date d'effet *</label><input type="date" id="mpa-date"></div>
+  </div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-prix-achat')">Annuler</button><button class="btn btn-primary" onclick="savePrixAchat()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- Facture fournisseur -->
+<div class="modal-overlay" id="m-facture"><div class="modal">
+  <div class="modal-header"><div class="modal-title" id="mff-title">Nouvelle facture fournisseur</div><button class="modal-close" onclick="closeModal('m-facture')">✕</button></div>
+  <input type="hidden" id="mff-id">
+  <div class="form-grid">
+    <div class="form-group"><label>Fournisseur *</label><select id="mff-fourn" onchange="fillFacturePrix()"><option value="">Sélectionner…</option></select></div>
+    <div class="form-group"><label>Date facture *</label><input type="date" id="mff-date"></div>
+    <div class="form-group"><label>Quantité (cartons) *</label><input type="number" id="mff-qte" min="1" oninput="calcFacture()"></div>
+    <div class="form-group"><label>Prix unitaire (FCFA)</label><input type="number" id="mff-pu" oninput="calcFacture()"></div>
+    <div class="form-group"><label>Total</label><input id="mff-total" readonly style="color:var(--amber);font-weight:700"></div>
+    <div class="form-group"><label>Paiement immédiat</label><input type="number" id="mff-paye" value="0" oninput="calcFacture()"></div>
+    <div class="form-group"><label>Solde restant</label><input id="mff-solde" readonly style="color:var(--red);font-weight:700"></div>
+    <div class="form-group"><label>Date échéance</label><input type="date" id="mff-echeance"></div>
+  </div>
+  <div class="form-group" style="margin-bottom:12px"><label>Observations</label><textarea id="mff-obs" rows="2"></textarea></div>
+  <div class="form-group"><label>📎 Scan de la facture (image ou PDF)</label><input type="file" id="mff-file" accept="image/*,.pdf"><div id="mff-fichier-info" style="font-size:11px;color:var(--txt3);margin-top:4px"></div></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-facture')">Annuler</button><button class="btn btn-primary" onclick="saveFacture()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- Payer une facture -->
+<div class="modal-overlay" id="m-payer-facture"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Payer la facture <span id="pf-numero"></span></div><button class="modal-close" onclick="closeModal('m-payer-facture')">✕</button></div>
+  <input type="hidden" id="pf-facture-id">
+  <div class="info-box" id="pf-info" style="color:var(--txt2)"></div>
+  <div class="form-grid">
+    <div class="form-group"><label>Date paiement *</label><input type="date" id="pf-date"></div>
+    <div class="form-group"><label>Montant à payer (FCFA) *</label><input type="number" id="pf-montant" min="1"></div>
+    <div class="form-group"><label>Mode de paiement</label><select id="pf-mode"><option value="banque">Virement / Espèces banque</option><option value="cash">Cash direct</option><option value="mobile_money">Mobile Money</option></select></div>
+  </div>
+  <div class="form-group" style="margin-bottom:12px">
+    <label class="flex" style="gap:8px;cursor:pointer">
+      <input type="checkbox" id="pf-deduire-banque" checked style="width:auto">
+      <span>Déduire automatiquement ce montant du solde bancaire</span>
+    </label>
+  </div>
+  <div class="form-group"><label>Observation</label><textarea id="pf-obs" rows="2"></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-payer-facture')">Annuler</button><button class="btn btn-primary" onclick="payerFacture()">✓ Confirmer le paiement</button></div>
+</div></div>
+
+<!-- Paiement global fournisseur (pas lié à une facture précise) -->
+<div class="modal-overlay" id="m-payer-fournisseur"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Payer le fournisseur <span id="pgf-nom"></span></div><button class="modal-close" onclick="closeModal('m-payer-fournisseur')">✕</button></div>
+  <input type="hidden" id="pgf-fournisseur-id">
+  <div class="info-box" id="pgf-info" style="color:var(--txt2)"></div>
+  <div class="form-grid">
+    <div class="form-group"><label>Date paiement *</label><input type="date" id="pgf-date"></div>
+    <div class="form-group"><label>Montant versé (FCFA) *</label><input type="number" id="pgf-montant" min="1" placeholder="Peut dépasser la dette actuelle"></div>
+  </div>
+  <div class="info-box" style="border-color:var(--amber);color:var(--txt2);font-size:12px">⚠️ Ce paiement est réparti automatiquement sur les factures impayées les plus anciennes. Si le montant versé dépasse la dette totale, l'excédent devient un crédit qui sera consommé automatiquement sur les prochaines factures de ce fournisseur.</div>
+  <div class="form-group" style="margin-bottom:12px">
+    <label class="flex" style="gap:8px;cursor:pointer">
+      <input type="checkbox" id="pgf-deduire-banque" checked style="width:auto">
+      <span>Déduire ce montant du solde bancaire</span>
+    </label>
+  </div>
+  <div class="form-group"><label>Observation</label><textarea id="pgf-obs" rows="2" placeholder="Ex: Paiement anticipé pour les prochaines livraisons"></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-payer-fournisseur')">Annuler</button><button class="btn btn-primary" onclick="payerFournisseurGlobal()">✓ Confirmer le paiement</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<!-- PAGE AVANCES CLIENTS -->
+<script>document.addEventListener('DOMContentLoaded',()=>{
+  const pages = document.getElementById('content');
+  // Page Avances
+  const pgAv = document.createElement('div');
+  pgAv.id = 'pg-avances';
+  pgAv.style.display = 'none';
+  pgAv.innerHTML = `
+    <div class="page-header">
+      <h2>💚 Avances clients</h2>
+      <button class="btn btn-primary" onclick="openAjouterAvanceNouv()">+ Enregistrer avance</button><button class="btn" style="background:#1d6f42;color:#fff;font-size:12px;margin-left:8px" onclick="exportExcelAvances()">⬇ Excel</button>
+    </div>
+    <div class="info-box" style="margin-bottom:16px;color:var(--txt2);font-size:13px">
+      Les clients avec un solde d'avance (💚) ont payé d'avance. Ce crédit sera automatiquement déduit de leur prochaine vente.
+    </div>
+    <div class="card">
+      <div class="card-title">Crédits disponibles <span id="total-avances" style="font-size:12px;color:var(--txt3);font-weight:400"></span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Client</th><th>Catégorie</th><th>Crédit disponible</th><th>Actions</th></tr></thead>
+        <tbody id="tbl-avances"></tbody>
+      </table></div>
+    </div>`;
+  pages.appendChild(pgAv);
+
+  // Page Catégories
+  const pgCat = document.createElement('div');
+  pgCat.id = 'pg-categories';
+  pgCat.style.display = 'none';
+  pgCat.innerHTML = `
+    <div class="page-header">
+      <h2>🏷️ Catégories &amp; Prix</h2>
+      <button class="btn btn-primary admin-only" onclick="openCategorieModal()">+ Nouvelle catégorie</button>
+    </div>
+    <div class="info-box" style="margin-bottom:16px;color:var(--txt2);font-size:13px">
+      Gérez ici les catégories de clients et leurs prix par carton. Le prix s'applique automatiquement lors d'une vente selon la catégorie du client.
+    </div>
+    <div class="card">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Catégorie</th><th>Prix / carton</th><th>Description</th><th>Actions</th></tr></thead>
+        <tbody id="tbl-categories"></tbody>
+      </table></div>
+    </div>`;
+  pages.appendChild(pgCat);
+});</script>
+
+<!-- Modal avance client -->
+<div class="modal-overlay" id="m-avance"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Enregistrer une avance</div><button class="modal-close" onclick="closeModal('m-avance')">✕</button></div>
+  <input type="hidden" id="mav-client-id">
+  <p style="margin-bottom:8px">Client : <strong id="mav-client-nom">—</strong></p>
+  <p style="margin-bottom:14px;color:var(--txt3);font-size:13px">Crédit actuel : <strong id="mav-avance-actuelle" class="text-green">0</strong></p>
+  <div class="form-grid">
+    <div class="form-group"><label>Date *</label><input type="date" id="mav-date"></div>
+    <div class="form-group"><label>Montant avance (FCFA) *</label><input type="number" id="mav-montant" min="1" placeholder="Ex: 60 000"></div>
+  </div>
+  <div class="form-group"><label>Observation</label><textarea id="mav-obs" rows="2"></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-avance')">Annuler</button><button class="btn btn-primary" onclick="saveAvance()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- Modal catégorie prix -->
+<div class="modal-overlay" id="m-categorie"><div class="modal">
+  <div class="modal-header"><div class="modal-title" id="mcat-title">Nouvelle catégorie</div><button class="modal-close" onclick="closeModal('m-categorie')">✕</button></div>
+  <input type="hidden" id="mcat-id">
+  <div class="form-grid">
+    <div class="form-group"><label>Nom catégorie *</label><input type="text" id="mcat-nom" placeholder="Ex: Revendeur Principal"></div>
+    <div class="form-group"><label>Prix par carton (FCFA) *</label><input type="number" id="mcat-prix" min="1" placeholder="Ex: 31500"></div>
+  </div>
+  <div class="form-group"><label>Description</label><textarea id="mcat-desc" rows="2" placeholder="Ex: Revendeurs zone N'Djamena"></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-categorie')">Annuler</button><button class="btn btn-primary" onclick="saveCategorie()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- Modal nouvelle depense -->
+<div class="modal-overlay" id="m-depense"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Nouvelle dépense</div><button class="modal-close" onclick="closeModal('m-depense')">✕</button></div>
+  <div class="info-box" style="color:var(--txt2);font-size:12px;margin-bottom:12px">
+    La dépense est prélevée de l'<strong>Afrocaisse</strong>. Solde disponible : <strong id="md-solde-af" class="text-green">—</strong>
+  </div>
+  <div class="form-grid">
+    <div class="form-group"><label>Date *</label><input type="date" id="md-date"></div>
+    <div class="form-group"><label>Type de dépense *</label><select id="md-type"><option value="">Sélectionner…</option></select></div>
+    <div class="form-group"><label>Montant (FCFA) *</label><input type="number" id="md-montant" min="1" placeholder="Ex: 15000"></div>
+    <div class="form-group"><label>Bénéficiaire</label><input type="text" id="md-benef" placeholder="Ex: Mamadou chauffeur"></div>
+  </div>
+  <div class="form-group"><label>Description</label><textarea id="md-desc" rows="2" placeholder="Détails"></textarea></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-depense')">Annuler</button><button class="btn btn-primary" onclick="saveDepense()">✓ Enregistrer</button></div>
+</div></div>
+
+<!-- Modal alimentation Afrocaisse -->
+<div class="modal-overlay" id="m-alim-af"><div class="modal">
+  <div class="modal-header"><div class="modal-title">Alimenter l'Afrocaisse</div><button class="modal-close" onclick="closeModal('m-alim-af')">✕</button></div>
+  <div class="info-box" style="color:var(--txt2);font-size:12px;margin-bottom:12px">
+    Ce montant sera <strong>déduit de la banque</strong> et ajouté à l'Afrocaisse.
+    Solde actuel Afrocaisse : <strong id="maf-solde" class="text-green">—</strong>
+  </div>
+  <div class="form-grid">
+    <div class="form-group"><label>Date *</label><input type="date" id="maf-date"></div>
+    <div class="form-group"><label>Montant à transférer (FCFA) *</label><input type="number" id="maf-montant" min="1" placeholder="Ex: 500000"></div>
+  </div>
+  <div class="form-group"><label>Description</label><input type="text" id="maf-desc" placeholder="Ex: Caisse semaine du 01/07"></div>
+  <div class="modal-footer"><button class="btn" onclick="closeModal('m-alim-af')">Annuler</button><button class="btn btn-primary" onclick="alimenterAfrocaisse()">✓ Transférer</button></div>
+</div></div>
+
+<script src="app.js"></script>
+</body>
+</html>
